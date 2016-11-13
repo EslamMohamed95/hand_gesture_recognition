@@ -141,7 +141,7 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
     BATCH_X_VAL = BATCH_X_VAL.reshape(BATCH_X_VAL.shape[0], 1, 64, 64)
     BATCH_Y_VAL = np.array(np_utils.to_categorical(batch_Y_val))
 
-    print BATCH_X_TRAIN.shape, BATCH_Y_TRAIN.shape, BATCH_X_VAL.shape, BATCH_Y_VAL.shape
+#    print BATCH_X_TRAIN.shape, BATCH_Y_TRAIN.shape, BATCH_X_VAL.shape, BATCH_Y_VAL.shape
 
 
     if not WEIGHT_FILE_EXISTS:
@@ -150,8 +150,8 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
     
         # Compiling model
         model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
-        print model.summary()
-        
+#        print model.summary()
+
         model.fit(BATCH_X_TRAIN, BATCH_Y_TRAIN, validation_data=(BATCH_X_VAL, BATCH_Y_VAL), batch_size=BATCH_SIZE, nb_epoch=10, shuffle=True, verbose=1)
         WEIGHT_FILE = 'hand_gesture_weights_{}.h5'.format(number_of_batches_generated)
         model.save_weights(WEIGHT_FILE)
@@ -163,8 +163,7 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
         model = create_model(shape_train_image, 6)
         
         # Loading weights
-        if weights_avail:
-            model.load_weights(WEIGHT_FILE, by_name=True)
+        model.load_weights(WEIGHT_FILE, by_name=True)
         
         # Compiling model
         model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
