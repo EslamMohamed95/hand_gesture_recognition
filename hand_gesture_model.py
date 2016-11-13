@@ -156,7 +156,7 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
         WEIGHT_FILE = 'hand_gesture_weights_{}.h5'.format(number_of_batches_generated)
         model.save_weights(WEIGHT_FILE)
         WEIGHT_FILE_EXISTS = True
-        print 'Done here..'
+        print 'Saving weights to: {}'.format(WEIGHT_FILE)
     
     else:
         # Create the model
@@ -166,10 +166,13 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
         model.load_weights(WEIGHT_FILE, by_name=True)
         
         # Compiling model
+        print 'Loading weights from: {}'.format(WEIGHT_FILE)
         model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
         
         model.fit(BATCH_X_TRAIN, BATCH_Y_TRAIN, validation_data=(BATCH_X_VAL, BATCH_Y_VAL), batch_size=BATCH_SIZE, nb_epoch=10, shuffle=True, verbose=1)
-        model.save_weights('hand_gesture_weights_{}.h5'.format(number_of_batches_generated))
+        WEIGHT_FILE = 'hand_gesture_weights_{}.h5'.format(number_of_batches_generated)
+        model.save_weights(WEIGHT_FILE)
+        print 'Saving weights to: {}'.format(WEIGHT_FILE)
 
 
 
