@@ -127,7 +127,7 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
 
     # Extracting the shape of the dataset
     shape_train_image, shape_val_image = np.array(cv2.imread(url_train, 0)), np.array(cv2.imread(url_val, 0))
-    shape_train_image, shape_val_image = shape_train_image.reshape(1, 64, 64), shape_val_image.reshape(1, 64, 64)
+    shape_train_image, shape_val_image = (shape_train_image.reshape(1, 64, 64)).shape, (shape_val_image.reshape(1, 64, 64)).shape
     
     for i, name in enumerate(batch_X_train):
         BATCH_X_TRAIN.append(np.array(cv2.imread(os.path.join(PATH_BASE, EXT_TRAIN, name), 0)))
@@ -146,10 +146,11 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
 
     if not WEIGHT_FILE_EXISTS:
         # Create the model
-        model = create_model(shape_train_image.shape, 6)
+        model = create_model(shape_train_image, 6)
     
         # Compiling model
         model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
+        print model.summary()
         
         model.fit(BATCH_X_TRAIN, BATCH_Y_TRAIN, validation_data=(BATCH_X_VAL, BATCH_Y_VAL), batch_size=BATCH_SIZE, nb_epoch=10, shuffle=True, verbose=1)
         WEIGHT_FILE = 'hand_gesture_weights_{}.h5'.format(number_of_batches_generated)
@@ -159,7 +160,7 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
     
     else:
         # Create the model
-        model = create_model(shape_train_image.shape, 6)
+        model = create_model(shape_train_image, 6)
         
         # Loading weights
         if weights_avail:
@@ -170,7 +171,6 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
         
         model.fit(BATCH_X_TRAIN, BATCH_Y_TRAIN, validation_data=(BATCH_X_VAL, BATCH_Y_VAL), batch_size=BATCH_SIZE, nb_epoch=10, shuffle=True, verbose=1)
         model.save_weights('hand_gesture_weights_{}.h5'.format(number_of_batches_generated))
-
 
 
 
