@@ -1,5 +1,5 @@
 # Import Statements
-import numpy as numpy
+import numpy as np
 import pandas as pd
 from random import shuffle
 from keras.models import Model
@@ -16,8 +16,9 @@ PATH_BASE = 'data'
 EXT_TRAIN = 'train'
 EXT_VAL = 'val'
 EXT_TEST = 'test'
-BATCH_SIZE = 10
-
+BATCH_SIZE = 8
+WEIGHT_FILE_EXISTS = False
+WEIGHT_FILE = None
 
 # Layers Convolution size
 CONV_1_SIZE = 5
@@ -29,7 +30,7 @@ CONV_6_SIZE = 3
 
 
 # Model
-def create_model(input_shape):
+def create_model(input_shape, output_shape):
     
     inp = Input(shape=input_shape, name='Input')
     
@@ -77,19 +78,20 @@ def create_model(input_shape):
     relu_8 = Activation('relu')(batch_normalization_8)
     dropout_5 = Dropout(0.2)(relu_8)
     
-    out = Dense(10, activation='softmax', name='Output')(dropout_5)
-
+    out = Dense(output_shape, activation='softmax', name='Output')(dropout_5)
+    
+    # Creating a model from the specified layers
     model = Model(input = inp, output = out)
-
+    
     return model
-
-model = create_model((1, 48, 48))
-#print model.summary()
 
 
 def batch_generator(train_files, val_files, batch_size):
     for i in range(0, len(train_files), batch_size):
-        yield train_files[i:i+batch_size], [int(x[0]) for x in train_files[i:i+batch_size]], val_files[i/2:i/2+batch_size], [int(x[0]) for x in val_files[i/2:i/2+batch_size]]
+        yield (np.array(train_files[i:i+batch_size]),
+              np.array([int(x[0]) for x in train_files[i:i+batch_size]]),
+              np.array(val_files[i/2:i/2+batch_size]),
+              np.array([int(x[0]) for x in val_files[i/2:i/2+batch_size]]))
 
 
 # Getting Data, making batches and training on thoe batches
@@ -108,7 +110,79 @@ print '\nNumber of training examples: {}'.format(len(train_files))
 print 'Number of validation examples: {}'.format(len(val_files))
 print 'Number of testing examples: {}\n'.format(len(test_files))
 
+
+number_of_batches_generated = 0
 for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(train_files, val_files, BATCH_SIZE):
-    print len(batch_X_train), len(batch_Y_train), len(batch_X_val), len(batch_Y_val)
+#    print len(batch_X_train), len(batch_Y_train), len(batch_X_val), len(batch_Y_val)
+    number_of_batches_generated +=1
+    
+    BATCH_X_TRAIN = []
+    BATCH_Y_TRAIN = []
+    BATCH_X_VAL = []
+    BATCH_Y_VAL = []
+    
+    # Url of the training data
+    url_train = os.path.join(PATH_BASE, EXT_TRAIN, batch_X_train[0])
+    url_val = os.path.join(PATH_BASE, EXT_VAL, batch_X_val[0])
+
+    # Extracting the shape of the dataset
+    shape_train_image, shape_val_image = np.array(cv2.imread(url_train, 0)), np.array(cv2.imread(url_val, 0))
+    shape_train_image, shape_val_image = shape_train_image.reshape(1, 64, 64), shape_val_image.reshape(1, 64, 64)
+    
+    for i, name in enumerate(batch_X_train):
+        BATCH_X_TRAIN.append(np.array(cv2.imread(os.path.join(PATH_BASE, EXT_TRAIN, name), 0)))
+    BATCH_X_TRAIN = np.array(BATCH_X_TRAIN)
+    BATCH_X_TRAIN = BATCH_X_TRAIN.reshape(BATCH_X_TRAIN.shape[0], 1, 64, 64)
+    BATCH_Y_TRAIN = np.array(np_utils.to_categorical(batch_Y_train))
+
+    for i, name in enumerate(batch_X_val):
+        BATCH_X_VAL.append(np.array(cv2.imread(os.path.join(PATH_BASE, EXT_VAL, name), 0)))
+    BATCH_X_VAL = np.array(BATCH_X_VAL)
+    BATCH_X_VAL = BATCH_X_VAL.reshape(BATCH_X_VAL.shape[0], 1, 64, 64)
+    BATCH_Y_VAL = np.array(np_utils.to_categorical(batch_Y_val))
+
+    print BATCH_X_TRAIN.shape, BATCH_Y_TRAIN.shape, BATCH_X_VAL.shape, BATCH_Y_VAL.shape
+
+
+    if not WEIGHT_FILE_EXISTS:
+        # Create the model
+        model = create_model(shape_train_image.shape, 6)
+    
+        # Compiling model
+        model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
+        
+        model.fit(BATCH_X_TRAIN, BATCH_Y_TRAIN, validation_data=(BATCH_X_VAL, BATCH_Y_VAL), batch_size=BATCH_SIZE, nb_epoch=10, shuffle=True, verbose=1)
+        WEIGHT_FILE = 'hand_gesture_weights_{}.h5'.format(number_of_batches_generated)
+        model.save_weights(WEIGHT_FILE)
+        WEIGHT_FILE_EXISTS = True
+        print 'Done here..'
+    
+    else:
+        # Create the model
+        model = create_model(shape_train_image.shape, 6)
+        
+        # Loading weights
+        if weights_avail:
+            model.load_weights(WEIGHT_FILE, by_name=True)
+        
+        # Compiling model
+        model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
+        
+        model.fit(BATCH_X_TRAIN, BATCH_Y_TRAIN, validation_data=(BATCH_X_VAL, BATCH_Y_VAL), batch_size=BATCH_SIZE, nb_epoch=10, shuffle=True, verbose=1)
+        model.save_weights('hand_gesture_weights_{}.h5'.format(number_of_batches_generated))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
