@@ -155,12 +155,10 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
         WEIGHT_FILE = 'hand_gesture_weights_{}.h5'.format(number_of_batches_generated)
         model.save_weights(WEIGHT_FILE)
         WEIGHT_FILE_EXISTS = True
-<<<<<<< HEAD
+
         print 'Done here..'
         print WEIGHT_FILE
-=======
         print 'Saving weights to: {}'.format(WEIGHT_FILE)
->>>>>>> 86c33145911b7e5c7519c30ee684afc8707ff741
     
     else:
         # Create the model
