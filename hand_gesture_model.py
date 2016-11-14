@@ -8,7 +8,6 @@ from keras.layers.core import Activation
 from keras.utils import np_utils
 from sklearn.cross_validation import train_test_split
 import cv2, os
-from keras.utils.visualize_util import plot
 
 # GLOBAL VARIABLES
 PATH_BASE = 'data'
@@ -81,7 +80,7 @@ def create_model(input_shape, output_shape):
     
     # Creating a model from the specified layers
     model = Model(input = inp, output = out)
-    plot(model, to_file='model.png')
+
     return model
 
 
