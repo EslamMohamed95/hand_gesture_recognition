@@ -19,7 +19,7 @@ PATH_BASE = 'data'
 EXT_TRAIN = 'train'
 EXT_VAL = 'val'
 EXT_TEST = 'test'
-BATCH_SIZE = 8
+BATCH_SIZE = 150
 WEIGHT_FILE_EXISTS = False
 WEIGHT_FILE = None
 
