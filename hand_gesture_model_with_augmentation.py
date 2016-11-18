@@ -9,6 +9,8 @@ from keras.layers.core import Activation
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import np_utils
 from sklearn.cross_validation import train_test_split
+import keras.backend as K
+K.set_image_dim_ordering('th')
 import cv2, os
 
 
