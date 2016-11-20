@@ -196,7 +196,7 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
     BATCH_X_TEST = []
     BATCH_Y_TEST = []
     
-    batch_X_test, batch_y_test in next(test_generator)
+    batch_X_test, batch_y_test = next(test_generator)
 
     for i, url_test_img in enumerate(batch_X_test):
         BATCH_X_TEST.append(np.array(cv2.imread(os.path.join(PATH_BASE, EXT_TEST, url_test_img), 0)))
