@@ -92,9 +92,15 @@ def create_model(input_shape, output_shape):
 def batch_generator(train_files, val_files, batch_size):
     for i in range(0, len(train_files), batch_size):
         yield (np.array(train_files[i:i+batch_size]),
-              np.array([int(x[0]) for x in train_files[i:i+(batch_size/2)]]),
-              np.array(val_files[i/2:i/2+batch_size]),
-              np.array([int(x[0]) for x in val_files[i/2:i/2+(batch_size/2)]]))
+              np.array([int(y[0]) for y in train_files[i:i+batch_size]]),
+              np.array(val_files[i/2:i/2+batch_size/2]),
+              np.array([int(y[0]) for y in val_files[i/2:i/2+batch_size/2]]))
+
+def test_batch_generator(test_files, batch_size):
+    for i in range(0, len(test_files), batch_size):
+        yield (np.array(test_files[i:i+batch_size]),
+               np.array([int(y[0]) for y in test_files[i:i+batch_size]]))
+
 
 
 # Getting Data, making batches and training on thoe batches
@@ -113,7 +119,7 @@ print '\nNumber of training examples: {}'.format(len(train_files))
 print 'Number of validation examples: {}'.format(len(val_files))
 print 'Number of testing examples: {}\n'.format(len(test_files))
 
-
+test_generator = test_batch_generator(test_files, BATCH_SIZE)
 number_of_batches_generated = 0
 for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(train_files, val_files, BATCH_SIZE):
 #    print len(batch_X_train), len(batch_Y_train), len(batch_X_val), len(batch_Y_val)
@@ -135,21 +141,22 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
     for i, name in enumerate(batch_X_train):
         BATCH_X_TRAIN.append(np.array(cv2.imread(os.path.join(PATH_BASE, EXT_TRAIN, name), 0)))
     BATCH_X_TRAIN = np.array(BATCH_X_TRAIN)
-    BATCH_X_TRAIN = BATCH_X_TRAIN.reshape(BATCH_X_TRAIN.shape[0], 1, 64, 64)
-    BATCH_Y_TRAIN = np.array(np_utils.to_categorical(batch_Y_train))
+    BATCH_X_TRAIN = (BATCH_X_TRAIN.reshape(BATCH_X_TRAIN.shape[0], 1, 64, 64)).astype(np.float32)
+    BATCH_Y_TRAIN = (np.array(np_utils.to_categorical(batch_Y_train))).astype(np.float32)
 
     for i, name in enumerate(batch_X_val):
         BATCH_X_VAL.append(np.array(cv2.imread(os.path.join(PATH_BASE, EXT_VAL, name), 0)))
     BATCH_X_VAL = np.array(BATCH_X_VAL)
-    BATCH_X_VAL = BATCH_X_VAL.reshape(BATCH_X_VAL.shape[0], 1, 64, 64)
-    BATCH_Y_VAL = np.array(np_utils.to_categorical(batch_Y_val))
+    BATCH_X_VAL = (BATCH_X_VAL.reshape(BATCH_X_VAL.shape[0], 1, 64, 64)).astype(np.float32)
+    BATCH_Y_VAL = (np.array(np_utils.to_categorical(batch_Y_val))).astype(np.float32)
+
 
 #    print BATCH_X_TRAIN.shape, BATCH_Y_TRAIN.shape, BATCH_X_VAL.shape, BATCH_Y_VAL.shape
 
+    # Create the model
+    model = create_model(shape_train_image, BATCH_Y_TRAIN.shape[1])
 
     if not WEIGHT_FILE_EXISTS:
-        # Create the model
-        model = create_model(shape_train_image, 6)
         
         # Compiling model
         model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
@@ -167,8 +174,6 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
         print 'Saving weights to: {}'.format(WEIGHT_FILE)
     
     else:
-        # Create the model
-        model = create_model(shape_train_image, 6)
         
         # Loading weights
         model.load_weights(WEIGHT_FILE, by_name=True)
@@ -187,3 +192,7 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
         WEIGHT_FILE = 'hand_gesture_weights_{}.h5'.format(number_of_batches_generated)
         model.save_weights(WEIGHT_FILE)
         print 'Saving weights to: {}'.format(WEIGHT_FILE)
+
+    BATCH_X_TEST, BATCH_Y_TEST = next(test_generator)
+    model.evaluate(BATCH_X_TEST, BATCH_Y_TEST, verbose=0)
+    print("CNN Accuracy: %.2f%%" % (scores[1]*100))
