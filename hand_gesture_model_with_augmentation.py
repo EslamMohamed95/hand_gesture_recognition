@@ -19,7 +19,7 @@ PATH_BASE = 'data'
 EXT_TRAIN = 'train'
 EXT_VAL = 'val'
 EXT_TEST = 'test'
-BATCH_SIZE = 150
+BATCH_SIZE = 1000
 WEIGHT_FILE_EXISTS = False
 WEIGHT_FILE = None
 
@@ -164,8 +164,8 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
         # ImageDataGenerator
         datagen = ImageDataGenerator(featurewise_center=True, featurewise_std_normalization=True, vertical_flip=True)
         datagen.fit(BATCH_X_TRAIN)
-        model.fit_generator(datagen.flow(BATCH_X_TRAIN, BATCH_Y_TRAIN, batch_size=BATCH_SIZE),
-                            samples_per_epoch=len(BATCH_X_TRAIN), nb_epoch=1, verbose=1)
+        model.fit_generator(datagen.flow(BATCH_X_TRAIN, BATCH_Y_TRAIN, batch_size=BATCH_SIZE/5),
+                            samples_per_epoch=len(BATCH_X_TRAIN), nb_epoch=5, verbose=1)
 
 #        model.fit(BATCH_X_TRAIN, BATCH_Y_TRAIN, validation_data=(BATCH_X_VAL, BATCH_Y_VAL), batch_size=BATCH_SIZE, nb_epoch=10, shuffle=True, verbose=1)
         WEIGHT_FILE = 'hand_gesture_weights_{}.h5'.format(number_of_batches_generated)
@@ -185,8 +185,8 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
         # ImageDataGenerator
         datagen = ImageDataGenerator(featurewise_center=True, featurewise_std_normalization=True, vertical_flip=True)
         datagen.fit(BATCH_X_TRAIN)
-        model.fit_generator(datagen.flow(BATCH_X_TRAIN, BATCH_Y_TRAIN, batch_size=BATCH_SIZE),
-                            samples_per_epoch=len(BATCH_X_TRAIN), nb_epoch=1, verbose=1)
+        model.fit_generator(datagen.flow(BATCH_X_TRAIN, BATCH_Y_TRAIN, batch_size=BATCH_SIZE/5),
+                            samples_per_epoch=len(BATCH_X_TRAIN), nb_epoch=5, verbose=1)
         
 #        model.fit(BATCH_X_TRAIN, BATCH_Y_TRAIN, validation_data=(BATCH_X_VAL, BATCH_Y_VAL), batch_size=BATCH_SIZE, nb_epoch=10, shuffle=True, verbose=1)
         WEIGHT_FILE = 'hand_gesture_weights_{}.h5'.format(number_of_batches_generated)
@@ -196,12 +196,14 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
     BATCH_X_TEST = []
     BATCH_Y_TEST = []
     
-    for x_test, y_test in next(test_generator):
-        for i, test_img in enumerate(x_test)
-        BATCH_X_TEST.append(np.array(cv2.imread(os.path.join(PATH_BASE, EXT_TEST, x_test), 0)))
-    BATCH_X_TRAIN = np.array(BATCH_X_TRAIN)
-    BATCH_X_TRAIN = (BATCH_X_TRAIN.reshape(BATCH_X_TRAIN.shape[0], 1, 64, 64)).astype(np.float32)
-    BATCH_Y_TRAIN = (np.array(np_utils.to_categorical(batch_Y_train))).astype(np.float32)
-    BATCH_X_TEST, BATCH_Y_TEST = next(test_generator)
+    batch_X_test, batch_y_test in next(test_generator)
+
+    for i, url_test_img in enumerate(batch_X_test):
+        BATCH_X_TEST.append(np.array(cv2.imread(os.path.join(PATH_BASE, EXT_TEST, url_test_img), 0)))
+
+    BATCH_X_TEST = np.array(BATCH_X_TEST)
+    BATCH_X_TEST = (BATCH_X_TEST.reshape(BATCH_X_TEST.shape[0], 1, 64, 64)).astype(np.float32)
+    BATCH_Y_TEST = (np.array(np_utils.to_categorical(batch_Y_test))).astype(np.float32)
+
     scores = model.evaluate(BATCH_X_TEST, BATCH_Y_TEST, batch_size = BATCH_X_TEST.shape[0], verbose=0)
     print("CNN Accuracy: %.2f%%" % (scores[1]*100))
