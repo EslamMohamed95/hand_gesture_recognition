@@ -162,7 +162,7 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
         model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
         
         # ImageDataGenerator
-        datagen = ImageDataGenerator(featurewise_center=True, featurewise_std_normalization=True, vertical_flip=True)
+        datagen = ImageDataGenerator(featurewise_center=True, featurewise_std_normalization=True, horizontal_flip=True, vertical_flip=True, rotation_range=180)
         datagen.fit(BATCH_X_TRAIN)
         model.fit_generator(datagen.flow(BATCH_X_TRAIN, BATCH_Y_TRAIN, batch_size=BATCH_SIZE/5),
                             samples_per_epoch=len(BATCH_X_TRAIN), nb_epoch=5, verbose=1)
@@ -183,7 +183,7 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
         model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
         
         # ImageDataGenerator
-        datagen = ImageDataGenerator(featurewise_center=True, featurewise_std_normalization=True, vertical_flip=True)
+        datagen = ImageDataGenerator(featurewise_center=True, featurewise_std_normalization=True, horizontal_flip=True, vertical_flip=True, rotation_range=180)
         datagen.fit(BATCH_X_TRAIN)
         model.fit_generator(datagen.flow(BATCH_X_TRAIN, BATCH_Y_TRAIN, batch_size=BATCH_SIZE/5),
                             samples_per_epoch=len(BATCH_X_TRAIN), nb_epoch=5, verbose=1)
@@ -196,7 +196,7 @@ for batch_X_train, batch_Y_train, batch_X_val, batch_Y_val in batch_generator(tr
     BATCH_X_TEST = []
     BATCH_Y_TEST = []
     
-    batch_X_test, batch_y_test in next(test_generator)
+    batch_X_test, batch_y_test = next(test_generator)
 
     for i, url_test_img in enumerate(batch_X_test):
         BATCH_X_TEST.append(np.array(cv2.imread(os.path.join(PATH_BASE, EXT_TEST, url_test_img), 0)))
